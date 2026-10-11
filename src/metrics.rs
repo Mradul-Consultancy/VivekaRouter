@@ -70,57 +70,57 @@ impl Metrics {
     pub fn render(&self) -> String {
         let mut out = String::with_capacity(4096);
         let active = self.active_requests.load(Ordering::Relaxed);
-        out.push_str("# HELP voltgate_active_requests Number of requests currently being processed\n# TYPE voltgate_active_requests gauge\n");
-        out.push_str(&format!("voltgate_active_requests {active}\n\n"));
+        out.push_str("# HELP vivekarouter_active_requests Number of requests currently being processed\n# TYPE vivekarouter_active_requests gauge\n");
+        out.push_str(&format!("vivekarouter_active_requests {active}\n\n"));
 
-        out.push_str("# HELP voltgate_requests_total Total requests processed\n# TYPE voltgate_requests_total counter\n");
+        out.push_str("# HELP vivekarouter_requests_total Total requests processed\n# TYPE vivekarouter_requests_total counter\n");
         for (key, count) in self.requests_total.lock().unwrap().iter() {
             let parts: Vec<&str> = key.split('|').collect();
             if parts.len() == 4 {
-                out.push_str(&format!("voltgate_requests_total{{model=\"{}\",complexity=\"{}\",task_type=\"{}\",status=\"{}\"}} {count}\n", parts[0], parts[1], parts[2], parts[3]));
+                out.push_str(&format!("vivekarouter_requests_total{{model=\"{}\",complexity=\"{}\",task_type=\"{}\",status=\"{}\"}} {count}\n", parts[0], parts[1], parts[2], parts[3]));
             }
         }
         out.push('\n');
 
-        out.push_str("# HELP voltgate_cost_usd_total Total cost in USD\n# TYPE voltgate_cost_usd_total counter\n");
+        out.push_str("# HELP vivekarouter_cost_usd_total Total cost in USD\n# TYPE vivekarouter_cost_usd_total counter\n");
         for (model, cost) in self.cost_usd_total.lock().unwrap().iter() {
-            out.push_str(&format!("voltgate_cost_usd_total{{model=\"{model}\"}} {cost:.8}\n"));
+            out.push_str(&format!("vivekarouter_cost_usd_total{{model=\"{model}\"}} {cost:.8}\n"));
         }
         out.push('\n');
 
         let hits = self.cache_hits.load(Ordering::Relaxed);
         let misses = self.cache_misses.load(Ordering::Relaxed);
-        out.push_str(&format!("# HELP voltgate_cache_hits_total Classifier cache hits\n# TYPE voltgate_cache_hits_total counter\nvoltgate_cache_hits_total {hits}\n"));
-        out.push_str(&format!("# HELP voltgate_cache_misses_total Classifier cache misses\n# TYPE voltgate_cache_misses_total counter\nvoltgate_cache_misses_total {misses}\n\n"));
+        out.push_str(&format!("# HELP vivekarouter_cache_hits_total Classifier cache hits\n# TYPE vivekarouter_cache_hits_total counter\nvivekarouter_cache_hits_total {hits}\n"));
+        out.push_str(&format!("# HELP vivekarouter_cache_misses_total Classifier cache misses\n# TYPE vivekarouter_cache_misses_total counter\nvivekarouter_cache_misses_total {misses}\n\n"));
 
         let comp = self.compression_applied.load(Ordering::Relaxed);
-        out.push_str(&format!("# HELP voltgate_compression_applied_total Requests where context was compressed\n# TYPE voltgate_compression_applied_total counter\nvoltgate_compression_applied_total {comp}\n\n"));
+        out.push_str(&format!("# HELP vivekarouter_compression_applied_total Requests where context was compressed\n# TYPE vivekarouter_compression_applied_total counter\nvivekarouter_compression_applied_total {comp}\n\n"));
 
         let retries = self.retries_total.load(Ordering::Relaxed);
         let fallbacks = self.fallbacks_total.load(Ordering::Relaxed);
-        out.push_str(&format!("# HELP voltgate_retries_total Requests that were retried\n# TYPE voltgate_retries_total counter\nvoltgate_retries_total {retries}\n"));
-        out.push_str(&format!("# HELP voltgate_fallbacks_total Requests that fell back to a different model\n# TYPE voltgate_fallbacks_total counter\nvoltgate_fallbacks_total {fallbacks}\n\n"));
+        out.push_str(&format!("# HELP vivekarouter_retries_total Requests that were retried\n# TYPE vivekarouter_retries_total counter\nvivekarouter_retries_total {retries}\n"));
+        out.push_str(&format!("# HELP vivekarouter_fallbacks_total Requests that fell back to a different model\n# TYPE vivekarouter_fallbacks_total counter\nvivekarouter_fallbacks_total {fallbacks}\n\n"));
 
-        out.push_str("# HELP voltgate_guardrail_violations_total Guardrail violations by reason\n# TYPE voltgate_guardrail_violations_total counter\n");
+        out.push_str("# HELP vivekarouter_guardrail_violations_total Guardrail violations by reason\n# TYPE vivekarouter_guardrail_violations_total counter\n");
         for (reason, count) in self.guardrail_violations.lock().unwrap().iter() {
-            out.push_str(&format!("voltgate_guardrail_violations_total{{reason=\"{reason}\"}} {count}\n"));
+            out.push_str(&format!("vivekarouter_guardrail_violations_total{{reason=\"{reason}\"}} {count}\n"));
         }
         out.push('\n');
 
-        out.push_str("# HELP voltgate_latency_ms Request latency in milliseconds\n# TYPE voltgate_latency_ms summary\n");
+        out.push_str("# HELP vivekarouter_latency_ms Request latency in milliseconds\n# TYPE vivekarouter_latency_ms summary\n");
         for (model, hist) in self.latency_ms.lock().unwrap().iter() {
             for (q_name, q_val) in [("0.5", 0.5_f64), ("0.95", 0.95), ("0.99", 0.99)] {
-                out.push_str(&format!("voltgate_latency_ms{{model=\"{model}\",quantile=\"{q_name}\"}} {:.1}\n", hist.quantile(q_val)));
+                out.push_str(&format!("vivekarouter_latency_ms{{model=\"{model}\",quantile=\"{q_name}\"}} {:.1}\n", hist.quantile(q_val)));
             }
-            out.push_str(&format!("voltgate_latency_ms_sum{{model=\"{model}\"}} {:.1}\n", hist.sum()));
-            out.push_str(&format!("voltgate_latency_ms_count{{model=\"{model}\"}} {}\n", hist.count()));
+            out.push_str(&format!("vivekarouter_latency_ms_sum{{model=\"{model}\"}} {:.1}\n", hist.sum()));
+            out.push_str(&format!("vivekarouter_latency_ms_count{{model=\"{model}\"}} {}\n", hist.count()));
         }
         out.push('\n');
 
-        out.push_str("# HELP voltgate_context_tokens Context tokens sent per request\n# TYPE voltgate_context_tokens summary\n");
+        out.push_str("# HELP vivekarouter_context_tokens Context tokens sent per request\n# TYPE vivekarouter_context_tokens summary\n");
         for (model, hist) in self.context_tokens.lock().unwrap().iter() {
             for (q_name, q_val) in [("0.5", 0.5_f64), ("0.95", 0.95)] {
-                out.push_str(&format!("voltgate_context_tokens{{model=\"{model}\",quantile=\"{q_name}\"}} {:.0}\n", hist.quantile(q_val)));
+                out.push_str(&format!("vivekarouter_context_tokens{{model=\"{model}\",quantile=\"{q_name}\"}} {:.0}\n", hist.quantile(q_val)));
             }
         }
         out

@@ -1,4 +1,4 @@
-/// main.rs — VoltGate (fully wired: CE, retry, fallback, streaming,
+/// main.rs — VivekaRouter (fully wired: CE, retry, fallback, streaming,
 /// per-model budgets, webhook alerts)
 
 mod models;
@@ -131,7 +131,7 @@ async fn main() {
 
     let addr     = format!("0.0.0.0:{port}");
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-    tracing::info!("VoltGate  ➜  http://{addr}");
+    tracing::info!("VivekaRouter  ➜  http://{addr}");
     tracing::info!("Dashboard   ➜  http://{addr}/dashboard");
     tracing::info!("Playground  ➜  http://{addr}/docs");
     tracing::info!("Metrics     ➜  http://{addr}/metrics");
@@ -296,5 +296,5 @@ async fn prometheus_metrics() -> impl IntoResponse {
 }
 
 async fn health() -> Json<serde_json::Value> {
-    Json(serde_json::json!({ "status": "ok", "service": "voltgate", "version": env!("CARGO_PKG_VERSION") }))
+    Json(serde_json::json!({ "status": "ok", "service": "vivekarouter", "version": env!("CARGO_PKG_VERSION") }))
 }

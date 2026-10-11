@@ -61,22 +61,67 @@ impl Proxy {
                 let client = self.client.clone();
                 let api_key = self.api_key.clone();
                 let body = body.clone();
+                let model = candidate_model.clone();
                 async move {
-                    let http_resp = client.post(ANTHROPIC_API)
-                        .header("x-api-key", &api_key)
-                        .header("anthropic-version", "2023-06-01")
-                        .header("anthropic-beta", "prompt-caching-2024-07-31")
-                        .header("content-type", "application/json")
-                        .json(&body).send().await
-                        .map_err(|e| (0u16, format!("Network error: {e}")))?;
+                    if model.starts_with("gpt-") {
+                        // OpenAI cross-provider fallback call
+                        let openai_key = std::env::var("OPENAI_API_KEY").unwrap_or_default();
+                        let openai_body = serde_json::json!({
+                            "model": model,
+                            "messages": body.get("messages").cloned().unwrap_or(serde_json::json!([])),
+                            "max_tokens": body.get("max_tokens").cloned().unwrap_or(serde_json::json!(1024)),
+                            "temperature": body.get("temperature").cloned().unwrap_or(serde_json::json!(0.7)),
+                        });
 
-                    let status = http_resp.status();
-                    if !status.is_success() {
-                        let text = http_resp.text().await.unwrap_or_default();
-                        return Err((status.as_u16(), format!("Anthropic {status}: {text}")));
+                        let http_resp = client.post(crate::models::OPENAI_API)
+                            .header("Authorization", format!("Bearer {openai_key}"))
+                            .header("content-type", "application/json")
+                            .json(&openai_body).send().await
+                            .map_err(|e| (0u16, format!("Network error: {e}")))?;
+
+                        let status = http_resp.status();
+                        if !status.is_success() {
+                            let text = http_resp.text().await.unwrap_or_default();
+                            return Err((status.as_u16(), format!("OpenAI {status}: {text}")));
+                        }
+                        let parsed: serde_json::Value = http_resp.json().await
+                            .map_err(|e| (0u16, format!("Parse error: {e}")))?;
+
+                        let text = parsed["choices"][0]["message"]["content"].as_str().unwrap_or("").to_string();
+                        let in_tokens = parsed["usage"]["prompt_tokens"].as_i64().unwrap_or(0);
+                        let out_tokens = parsed["usage"]["completion_tokens"].as_i64().unwrap_or(0);
+                        let finish = parsed["choices"][0]["finish_reason"].as_str().map(|s| s.to_string());
+
+                        Ok(AnthropicResponse {
+                            id: parsed["id"].as_str().unwrap_or("oai").to_string(),
+                            content: vec![crate::models::AnthropicContentBlock {
+                                block_type: "text".to_string(),
+                                text: Some(text),
+                            }],
+                            stop_reason: finish,
+                            usage: crate::models::AnthropicUsage {
+                                input_tokens: in_tokens,
+                                output_tokens: out_tokens,
+                            },
+                        })
+                    } else {
+                        // Native Anthropic call
+                        let http_resp = client.post(ANTHROPIC_API)
+                            .header("x-api-key", &api_key)
+                            .header("anthropic-version", "2023-06-01")
+                            .header("anthropic-beta", "prompt-caching-2024-07-31")
+                            .header("content-type", "application/json")
+                            .json(&body).send().await
+                            .map_err(|e| (0u16, format!("Network error: {e}")))?;
+
+                        let status = http_resp.status();
+                        if !status.is_success() {
+                            let text = http_resp.text().await.unwrap_or_default();
+                            return Err((status.as_u16(), format!("Anthropic {status}: {text}")));
+                        }
+                        http_resp.json::<AnthropicResponse>().await
+                            .map_err(|e| (0u16, format!("Parse error: {e}")))
                     }
-                    http_resp.json::<AnthropicResponse>().await
-                        .map_err(|e| (0u16, format!("Parse error: {e}")))
                 }
             }).await;
 
@@ -84,6 +129,18 @@ impl Proxy {
 
             match outcome.result {
                 Ok(anthropic_resp) => {
+                    // Quality Guard: Check if completion was cut short unexpectedly on a cheap model
+                    let is_truncated = anthropic_resp.stop_reason.as_deref() == Some("max_tokens");
+                    let _output_text_len = anthropic_resp.content.iter()
+                        .filter(|b| b.block_type == "text")
+                        .filter_map(|b| b.text.as_ref()).map(|s| s.len()).sum::<usize>();
+
+                    // If simple model truncated output prematurely and a higher tier model is available in chain, escalate
+                    if is_truncated && candidate_model.contains("haiku") && hop + 1 < chain.len() {
+                        tracing::warn!("Quality Guard triggered: Haiku hit max_tokens truncation. Escalating to next model in fallback chain.");
+                        continue;
+                    }
+
                     let latency_ms = start.elapsed().as_millis() as i64;
                     let pricing    = ModelPricing::for_model(candidate_model);
                     let cost_usd   = pricing.cost(anthropic_resp.usage.input_tokens, anthropic_resp.usage.output_tokens);

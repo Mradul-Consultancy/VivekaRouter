@@ -7,8 +7,12 @@ pub const HAIKU:   &str = "claude-haiku-4-5";
 pub const SONNET:  &str = "claude-sonnet-4-6";
 pub const OPUS:    &str = "claude-opus-4-8";
 pub const FABLE:   &str = "claude-fable-5";
+pub const GPT4O_MINI: &str = "gpt-4o-mini";
+#[allow(dead_code)]
+pub const GPT4O:      &str = "gpt-4o";
 
 pub const ANTHROPIC_API: &str = "https://api.anthropic.com/v1/messages";
+pub const OPENAI_API:    &str = "https://api.openai.com/v1/chat/completions";
 
 // ── Pricing ($ per token) ─────────────────────────────────────────────────────
 
@@ -21,11 +25,13 @@ pub struct ModelPricing {
 impl ModelPricing {
     pub fn for_model(model: &str) -> Self {
         match model {
-            m if m.contains("haiku")  => Self { input_per_token: 0.25  / 1_000_000.0, output_per_token: 1.25  / 1_000_000.0 },
-            m if m.contains("sonnet") => Self { input_per_token: 3.00  / 1_000_000.0, output_per_token: 15.00 / 1_000_000.0 },
-            m if m.contains("opus")   => Self { input_per_token: 15.00 / 1_000_000.0, output_per_token: 75.00 / 1_000_000.0 },
-            m if m.contains("fable")  => Self { input_per_token: 10.00 / 1_000_000.0, output_per_token: 50.00 / 1_000_000.0 },
-            _                         => Self { input_per_token: 10.00 / 1_000_000.0, output_per_token: 50.00 / 1_000_000.0 },
+            m if m.contains("haiku")      => Self { input_per_token: 0.25  / 1_000_000.0, output_per_token: 1.25  / 1_000_000.0 },
+            m if m.contains("gpt-4o-mini") => Self { input_per_token: 0.15  / 1_000_000.0, output_per_token: 0.60  / 1_000_000.0 },
+            m if m.contains("gpt-4o")     => Self { input_per_token: 2.50  / 1_000_000.0, output_per_token: 10.00 / 1_000_000.0 },
+            m if m.contains("sonnet")     => Self { input_per_token: 3.00  / 1_000_000.0, output_per_token: 15.00 / 1_000_000.0 },
+            m if m.contains("opus")       => Self { input_per_token: 15.00 / 1_000_000.0, output_per_token: 75.00 / 1_000_000.0 },
+            m if m.contains("fable")      => Self { input_per_token: 10.00 / 1_000_000.0, output_per_token: 50.00 / 1_000_000.0 },
+            _                             => Self { input_per_token: 10.00 / 1_000_000.0, output_per_token: 50.00 / 1_000_000.0 },
         }
     }
 

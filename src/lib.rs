@@ -1,4 +1,4 @@
-// lib.rs — re-exports all modules so integration tests and binaries
+// lib.rs — VivekaRouter: re-exports all modules so integration tests and binaries
 // can both use `voltgate::module::item`.
 
 pub mod models;

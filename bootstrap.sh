@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# VoltGate — macOS/Linux Bootstrap and Onboarding Script
+# VivekaRouter — macOS/Linux Bootstrap and Onboarding Script
 
 clear
 echo -e "\033[36m=========================================================\033[0m"
-echo -e "\033[36m      ⚡ VoltGate — Intelligent Anthropic LLM Router     \033[0m"
+echo -e "\033[36m      ⚡ VivekaRouter — Intelligent Anthropic LLM Router     \033[0m"
 echo -e "\033[36m=========================================================\033[0m"
-echo "This script will help you configure and run VoltGate in one click."
+echo "This script will help you configure and run VivekaRouter in one click."
 echo ""
 
 # 1. Check prerequisites
@@ -66,7 +66,7 @@ open_dashboard() {
 }
 
 # 3. Choose run mode
-echo -e "\033[36mSelect how you would like to run VoltGate:\033[0m"
+echo -e "\033[36mSelect how you would like to run VivekaRouter:\033[0m"
 echo "  [1] Local Cargo Run (Recommended for development)"
 echo "  [2] Docker Compose (Recommended for isolated environments)"
 echo "  [3] Exit"
@@ -74,12 +74,12 @@ read -r -p "Enter choice [1-3]: " CHOICE
 
 case "$CHOICE" in
     1)
-        echo -e "\033[32mCompiling and running VoltGate locally...\033[0m"
+        echo -e "\033[32mCompiling and running VivekaRouter locally...\033[0m"
         open_dashboard &
         cargo run
         ;;
     2)
-        echo -e "\033[32mStarting VoltGate with Docker Compose...\033[0m"
+        echo -e "\033[32mStarting VivekaRouter with Docker Compose...\033[0m"
         open_dashboard &
         docker-compose up --build
         ;;

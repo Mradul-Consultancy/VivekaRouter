@@ -1,11 +1,11 @@
 [package]
-name        = "voltgate"
+name        = "vivekarouter"
 version     = "0.1.0"
 edition     = "2021"
-description = "VoltGate — Open-source LLM router proxy for Anthropic models"
+description = "VivekaRouter — Open-source intelligent LLM router proxy with semantic discernment"
 
 [[bin]]
-name = "voltgate"
+name = "vivekarouter"
 path = "src/main.rs"
 
 [lib]

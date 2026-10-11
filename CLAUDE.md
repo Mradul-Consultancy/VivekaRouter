@@ -1,4 +1,4 @@
-# VoltGate — Claude Code Instructions
+# VivekaRouter — Claude Code Instructions
 
 ## Project overview
 Rust (axum) reverse proxy routing AI tasks to the cheapest reliable

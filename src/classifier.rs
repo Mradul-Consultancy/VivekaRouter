@@ -15,6 +15,7 @@ const CACHE_TTL_SECS: u64 = 3600;
 struct CacheEntry {
     classification: Classification,
     inserted_at:    Instant,
+    embedding:      Option<Vec<f32>>,
 }
 
 #[derive(Clone)]
@@ -27,6 +28,35 @@ pub struct Classifier {
 impl Classifier {
     pub fn new(api_key: String) -> Self {
         Self { api_key, client: reqwest::Client::new(), cache: Arc::new(Mutex::new(HashMap::new())) }
+    }
+
+    fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
+        if a.len() != b.len() || a.is_empty() { return 0.0; }
+        let mut dot = 0.0f32;
+        let mut norm_a = 0.0f32;
+        let mut norm_b = 0.0f32;
+        for i in 0..a.len() {
+            dot += a[i] * b[i];
+            norm_a += a[i] * a[i];
+            norm_b += b[i] * b[i];
+        }
+        if norm_a == 0.0 || norm_b == 0.0 { return 0.0; }
+        dot / (norm_a.sqrt() * norm_b.sqrt())
+    }
+
+    fn quick_text_embedding(text: &str) -> Vec<f32> {
+        let mut emb = vec![0.0f32; 128];
+        let mut sum_sq = 0.0f32;
+        for (i, byte) in text.as_bytes().iter().enumerate() {
+            let idx = (i * 31 + *byte as usize) % 128;
+            emb[idx] += 1.0;
+        }
+        for v in &emb { sum_sq += v * v; }
+        if sum_sq > 0.0 {
+            let norm = sum_sq.sqrt();
+            for v in emb.iter_mut() { *v /= norm; }
+        }
+        emb
     }
 
     fn prompt_hash(text: &str) -> String {
@@ -42,8 +72,9 @@ impl Classifier {
         hex::encode(hasher.finalize())
     }
 
-    fn get_cached(&self, hash: &str) -> Option<Classification> {
+    fn get_cached(&self, hash: &str, text: &str) -> Option<Classification> {
         let mut cache = self.cache.lock().unwrap();
+        // Exact SHA-256 match
         if let Some(entry) = cache.get(hash) {
             if entry.inserted_at.elapsed() < Duration::from_secs(CACHE_TTL_SECS) {
                 let mut c = entry.classification.clone();
@@ -52,12 +83,29 @@ impl Classifier {
             }
             cache.remove(hash);
         }
+
+        // Semantic Vector Similarity Match (threshold > 0.95)
+        let query_emb = Self::quick_text_embedding(text);
+        for entry in cache.values() {
+            if entry.inserted_at.elapsed() < Duration::from_secs(CACHE_TTL_SECS) {
+                if let Some(ref emb) = entry.embedding {
+                    if Self::cosine_similarity(&query_emb, emb) >= 0.96 {
+                        let mut c = entry.classification.clone();
+                        c.cache_hit = true;
+                        c.reasoning = format!("Semantic Cache Hit (~96%+ similarity): {}", c.reasoning);
+                        return Some(c);
+                    }
+                }
+            }
+        }
+
         None
     }
 
-    fn set_cached(&self, hash: String, c: Classification) {
+    fn set_cached(&self, hash: String, text: &str, c: Classification) {
         let mut cache = self.cache.lock().unwrap();
-        cache.insert(hash, CacheEntry { classification: c, inserted_at: Instant::now() });
+        let emb = Some(Self::quick_text_embedding(text));
+        cache.insert(hash, CacheEntry { classification: c, inserted_at: Instant::now(), embedding: emb });
         if cache.len() > 10_000 {
             cache.retain(|_, v| v.inserted_at.elapsed() < Duration::from_secs(CACHE_TTL_SECS));
         }
@@ -77,12 +125,68 @@ impl Classifier {
         }).unwrap_or_default()
     }
 
+    fn fast_path_heuristic(text: &str) -> Option<Classification> {
+        let trimmed = text.trim();
+        let lower = trimmed.to_lowercase();
+        let word_count = trimmed.split_whitespace().count();
+
+        // 1. Trivial greetings & acknowledgements -> Simple (Haiku)
+        let simple_greetings = ["hi", "hello", "hey", "sup", "good morning", "good evening", "thanks", "thank you", "ok", "okay", "bye"];
+        if word_count <= 4 && simple_greetings.iter().any(|g| lower == *g || lower.starts_with(g)) {
+            return Some(Classification {
+                complexity: Complexity::Simple,
+                task_type: TaskType::Other,
+                estimated_output_tokens: 64,
+                reasoning: "Fast-path: trivial greeting / conversational acknowledgement".to_string(),
+                routed_to: crate::models::HAIKU.to_string(),
+                cache_hit: false,
+            });
+        }
+
+        // 2. Simple formatting / case transform / JSON validation tasks
+        if (lower.contains("convert to json") || lower.contains("format as json") || lower.contains("to uppercase") || lower.contains("to lowercase")) && word_count < 50 {
+            return Some(Classification {
+                complexity: Complexity::Simple,
+                task_type: TaskType::Data,
+                estimated_output_tokens: 256,
+                reasoning: "Fast-path: deterministic data formatting request".to_string(),
+                routed_to: crate::models::HAIKU.to_string(),
+                cache_hit: false,
+            });
+        }
+
+        // 3. Clear indicators of complex architectural / algorithmic design -> Complex (Fable/Opus)
+        let complex_triggers = [
+            "distributed consensus", "raft algorithm", "byzantine fault",
+            "microservices architecture design", "zero-knowledge proof", "formal verification",
+            "system design document", "design a high throughput distributed"
+        ];
+        if complex_triggers.iter().any(|t| lower.contains(t)) || (word_count > 600 && (lower.contains("architecture") || lower.contains("benchmark"))) {
+            return Some(Classification {
+                complexity: Complexity::Complex,
+                task_type: TaskType::Code,
+                estimated_output_tokens: 2048,
+                reasoning: "Fast-path: high-complexity system design or algorithmic task".to_string(),
+                routed_to: crate::models::FABLE.to_string(),
+                cache_hit: false,
+            });
+        }
+
+        None
+    }
+
     pub async fn classify(&self, messages: &[OpenAIMessage]) -> Classification {
         let prompt_text = Self::extract_prompt_text(messages);
         let hash = Self::prompt_hash(&prompt_text);
 
-        if let Some(cached) = self.get_cached(&hash) {
+        if let Some(cached) = self.get_cached(&hash, &prompt_text) {
             return cached;
+        }
+
+        // Fast-path heuristic pre-routing: 0ms latency and $0 token spend
+        if let Some(fast_class) = Self::fast_path_heuristic(&prompt_text) {
+            self.set_cached(hash, &prompt_text, fast_class.clone());
+            return fast_class;
         }
 
         let system = "You are a task classifier. Classify the user's request.
@@ -120,7 +224,7 @@ Guidelines:
                 let mut result = parsed;
                 result.routed_to = routed;
                 result.cache_hit = false;
-                self.set_cached(hash, result.clone());
+                self.set_cached(hash, &prompt_text, result.clone());
                 result
             }
             Err(e) => {

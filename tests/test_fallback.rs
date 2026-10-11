@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use voltgate::fallback::{next_fallback, fallback_chain, FallbackOutcome};
-    use voltgate::models::{HAIKU, SONNET, FABLE, OPUS};
+    use voltgate::models::{HAIKU, SONNET, FABLE, OPUS, GPT4O_MINI};
 
     #[test]
     fn fable_falls_back_to_sonnet() {
@@ -16,8 +16,12 @@ mod tests {
         assert_eq!(next_fallback(SONNET), Some(HAIKU));
     }
     #[test]
-    fn haiku_has_no_fallback() {
-        assert_eq!(next_fallback(HAIKU), None);
+    fn haiku_falls_back_to_gpt4o_mini() {
+        assert_eq!(next_fallback(HAIKU), Some(GPT4O_MINI));
+    }
+    #[test]
+    fn gpt4o_mini_has_no_fallback() {
+        assert_eq!(next_fallback(GPT4O_MINI), None);
     }
     #[test]
     fn unknown_model_falls_back_to_sonnet_as_safe_default() {
@@ -25,24 +29,24 @@ mod tests {
     }
 
     #[test]
-    fn fable_chain_has_three_models() {
+    fn fable_chain_has_four_models() {
         let chain = fallback_chain(FABLE);
-        assert_eq!(chain, vec![FABLE.to_string(), SONNET.to_string(), HAIKU.to_string()]);
+        assert_eq!(chain, vec![FABLE.to_string(), SONNET.to_string(), HAIKU.to_string(), GPT4O_MINI.to_string()]);
     }
     #[test]
-    fn opus_chain_has_three_models() {
+    fn opus_chain_has_four_models() {
         let chain = fallback_chain(OPUS);
-        assert_eq!(chain, vec![OPUS.to_string(), SONNET.to_string(), HAIKU.to_string()]);
+        assert_eq!(chain, vec![OPUS.to_string(), SONNET.to_string(), HAIKU.to_string(), GPT4O_MINI.to_string()]);
     }
     #[test]
-    fn sonnet_chain_has_two_models() {
+    fn sonnet_chain_has_three_models() {
         let chain = fallback_chain(SONNET);
-        assert_eq!(chain, vec![SONNET.to_string(), HAIKU.to_string()]);
+        assert_eq!(chain, vec![SONNET.to_string(), HAIKU.to_string(), GPT4O_MINI.to_string()]);
     }
     #[test]
-    fn haiku_chain_has_only_itself() {
+    fn haiku_chain_has_two_models() {
         let chain = fallback_chain(HAIKU);
-        assert_eq!(chain, vec![HAIKU.to_string()]);
+        assert_eq!(chain, vec![HAIKU.to_string(), GPT4O_MINI.to_string()]);
     }
     #[test]
     fn chain_never_exceeds_four_hops() {

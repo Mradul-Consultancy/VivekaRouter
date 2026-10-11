@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# VoltGate Curl Request Example
+# VivekaRouter Curl Request Example
 # To run this script:
-#   1. Ensure VoltGate is running on localhost:3001
+#   1. Ensure VivekaRouter is running on localhost:3001
 #   2. Run the script: ./curl_completions.sh
 
 # Resolve API Key from env if present
 API_KEY="${ROUTER_API_KEY:-default-open-key}"
 
-echo "⚡ Sending request to VoltGate on port 3001..."
+echo "⚡ Sending request to VivekaRouter on port 3001..."
 echo ""
 
 curl -X POST http://localhost:3001/v1/chat/completions \
@@ -20,7 +20,7 @@ curl -X POST http://localhost:3001/v1/chat/completions \
     "messages": [
       {
         "role": "user",
-        "content": "Hello! What model are you and how did VoltGate route me here?"
+        "content": "Hello! What model are you and how did VivekaRouter route me here?"
       }
     ],
     "max_tokens": 256,

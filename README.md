@@ -1,26 +1,30 @@
-# ⚡ VoltGate
+# ⚡ VivekaRouter
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust Version](https://img.shields.io/badge/rustc-1.78%2B-blue.svg)](https://www.rust-lang.org/)
 [![Status](https://img.shields.io/badge/status-production--ready-green.svg)]()
 
-VoltGate is an open-source, high-performance, and intelligent proxy server designed to route Anthropic requests dynamically to the cheapest model that can reliably handle the task. By combining real-time classification, advanced context engineering, failover chains, and dynamic spend controls, it allows developers to slash API costs by up to **78%** without sacrificing system reliability.
+VivekaRouter is an open-source, high-performance, and intelligent proxy server designed to route Anthropic requests dynamically to the cheapest model that can reliably handle the task. By combining real-time classification, advanced context engineering, failover chains, and dynamic spend controls, it allows developers to slash API costs by up to **78%** without sacrificing system reliability.
 
 ---
 
 ## 🚀 Key Features
 
-*   **Intelligent Routing:** Automatically classifies prompt complexity using a cached Haiku classifier, routing requests to `Haiku 4.5` (simple), `Sonnet 4.6` (medium), or `Fable 5` (complex).
+*   **Intelligent Routing & Fast-Path:** Employs a dual-tier router: instant 0ms, $0 heuristic classification for deterministic tasks (greetings, JSON formatting, obvious architecture prompts) and a cached Claude Haiku classifier for nuanced requests.
+*   **Semantic Vector Caching:** Beyond exact SHA-256 matching, calculates vector cosine similarity (~96%+ threshold) to serve semantically equivalent prompt classifications instantly without LLM triage calls.
+*   **Cross-Cloud Multi-Provider Failover:** If Anthropic experiences sustained outages or `529 Overloaded` spikes, the router automatically fails over cross-cloud to OpenAI (`gpt-4o-mini` / `gpt-4o`).
+*   **Quality Guard & Auto-Escalation:** Monitors completion health (e.g. premature `max_tokens` truncation on cheap models) and automatically escalates to higher-tier models.
 *   **Context Engineering:** Trims long transcripts, injects task-specific personas, and compresses conversation history when token count exceeds 8k.
 *   **OpenAI Compatibility:** Serves as a drop-in replacement for both Chat Completions (`/v1/chat/completions`) and Embeddings (`/v1/embeddings`), including real-time SSE streaming.
 *   **Cluster-Ready Rate Limiting:** Enforces caller RPM and spend limits using either an in-memory sliding window or a distributed Redis backend.
-*   **Resiliency & Failovers:** Automatically handles transient network or provider failures (5xx, 429, 529) via exponential backoff with jitter, falling back across models if error persists.
+*   **Resiliency & Failovers:** Automatically handles transient network or provider failures (5xx, 429, 529) via exponential backoff with jitter.
 *   **Real-time Admin UI:** Features a dark-themed live dashboard to inspect latencies, cache hit rates, model distributions, and hot-reload guardrail parameters on the fly.
 
 ## 🌟 Architectural Strengths
 
-*   **Intelligent Caching:** Classification inputs are hashed using SHA-256 and stored in an in-memory/SQLite cache with a 1-hour TTL. Repeated prompts skip the classification step completely, eliminating extra latency.
-*   **Failover Cascades:** If the primary model exhausts all retries due to provider outages (429 or 529), VoltGate automatically falls back to alternative models (e.g., `Fable` $\rightarrow$ `Sonnet` $\rightarrow$ `Haiku`) to ensure absolute uptime.
+*   **Dual-Tier Router & Semantic Caching:** Combines 0ms local heuristic rules, vector cosine similarity caching, and SHA-256 caching with a 1-hour TTL.
+*   **Cross-Cloud Fault Tolerance:** If primary Anthropic tiers exhaust retries, VivekaRouter cascades across models and providers (`Fable` $\rightarrow$ `Sonnet` $\rightarrow$ `Haiku` $\rightarrow$ `GPT-4o-mini`).
+*   **Quality Guard:** Defends against poor completions by transparently rerouting truncated outputs before returning them to client applications.
 *   **Dynamic Context Pruning:** Prompt payloads are inspected to mark Anthropic prompt caching boundaries, saving up to **90%** of input costs on long multi-turn chats.
 *   **Distributed Architecture:** Switches seamlessly from single-node local memory rate limits to a distributed cluster setup by connecting a Redis instance via the `REDIS_URL` variable.
 
@@ -91,7 +95,7 @@ cp .env.example .env
 Ensure you have the Rust compiler installed (v1.78+).
 ```bash
 cargo build --release
-./target/release/voltgate
+./target/release/vivekarouter
 ```
 *   **Dashboard:** [http://localhost:3001/dashboard](http://localhost:3001/dashboard)
 *   **API Playground / Docs:** [http://localhost:3001/docs](http://localhost:3001/docs)
@@ -107,7 +111,7 @@ docker-compose up --build -d
 
 ## 🔌 Compatibility & Standards
 
-VoltGate is designed to fit seamlessly into modern AI workflows:
+VivekaRouter is designed to fit seamlessly into modern AI workflows:
 
 *   **OpenAI Compatibility:** Serves as a drop-in proxy for standard OpenAI endpoints:
     *   `/v1/chat/completions` (Text generation & real-time streaming chunks)
@@ -119,7 +123,7 @@ VoltGate is designed to fit seamlessly into modern AI workflows:
 
 ## 🚀 Integration Examples
 
-VoltGate integrates with your current code by swapping the API endpoint.
+VivekaRouter integrates with your current code by swapping the API endpoint.
 
 ### Python SDK (Anthropic SDK Drop-in)
 ```python
@@ -221,7 +225,7 @@ claude-sonnet-4-6 = 100.0
 
 ## 🧪 Development & Testing
 
-VoltGate includes a comprehensive test suite of 108 unit and integration tests validating the routing logic, rate limiter, context engineering, and guardrails.
+VivekaRouter includes a comprehensive test suite of 108 unit and integration tests validating the routing logic, rate limiter, context engineering, and guardrails.
 
 ### Running Tests
 

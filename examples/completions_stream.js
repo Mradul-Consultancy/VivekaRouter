@@ -1,7 +1,7 @@
-// VoltGate Node.js/JavaScript Integration Example
+// VivekaRouter Node.js/JavaScript Integration Example
 // To run this script:
 //   1. Install dependencies: npm install @anthropic-ai/sdk dotenv
-//   2. Ensure VoltGate is running on localhost:3001
+//   2. Ensure VivekaRouter is running on localhost:3001
 //   3. Run the script: node completions_stream.js
 
 const path = require('path');
@@ -21,11 +21,11 @@ try {
     process.exit(1);
 }
 
-// Retrieve API key or use a fallback. VoltGate secures endpoints with ROUTER_API_KEY.
+// Retrieve API key or use a fallback. VivekaRouter secures endpoints with ROUTER_API_KEY.
 // If ROUTER_API_KEY is not defined in the environment, the router runs in open mode.
 const routerKey = process.env.ROUTER_API_KEY || "default-open-key";
 
-console.log("⚡ Connecting to VoltGate Proxy on http://localhost:3001...");
+console.log("⚡ Connecting to VivekaRouter Proxy on http://localhost:3001...");
 
 const client = new Anthropic({
     apiKey: routerKey,
@@ -35,7 +35,7 @@ const client = new Anthropic({
 const prompt = "Explain the difference between SQL and NoSQL databases in 3 short bullet points.";
 
 console.log(`\n💬 Sending Prompt:\n"${prompt}"`);
-console.log("\n🤖 VoltGate Streaming Response:");
+console.log("\n🤖 VivekaRouter Streaming Response:");
 console.log("-".repeat(50));
 
 async function main() {
@@ -56,8 +56,8 @@ async function main() {
         console.log("-".repeat(50));
         console.log("\n✓ Stream completed successfully!");
     } catch (error) {
-        console.error(`\n❌ Error contacting VoltGate: ${error.message}`);
-        console.error("Is the VoltGate server running on port 3001?");
+        console.error(`\n❌ Error contacting VivekaRouter: ${error.message}`);
+        console.error("Is the VivekaRouter server running on port 3001?");
     }
 }
 

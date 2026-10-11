@@ -1,10 +1,10 @@
-# VoltGate — Windows Bootstrap and Onboarding Script
+# VivekaRouter — Windows Bootstrap and Onboarding Script
 
 Clear-Host
 Write-Host "=========================================================" -ForegroundColor Cyan
-Write-Host "      ⚡ VoltGate — Intelligent Anthropic LLM Router     " -ForegroundColor Cyan
+Write-Host "      ⚡ VivekaRouter — Intelligent Anthropic LLM Router     " -ForegroundColor Cyan
 Write-Host "=========================================================" -ForegroundColor Cyan
-Write-Host "This script will help you configure and run VoltGate in one click."
+Write-Host "This script will help you configure and run VivekaRouter in one click."
 Write-Host ""
 
 # 1. Check prerequisites
@@ -53,7 +53,7 @@ if ($CurrentKey -eq "" -or $CurrentKey -like "your_anthropic_api_key*") {
 Write-Host ""
 
 # 3. Choose run mode
-Write-Host "Select how you would like to run VoltGate:" -ForegroundColor Cyan
+Write-Host "Select how you would like to run VivekaRouter:" -ForegroundColor Cyan
 Write-Host "  [1] Local Cargo Run (Recommended for development)"
 Write-Host "  [2] Docker Compose (Recommended for isolated environments)"
 Write-Host "  [3] Exit"
@@ -61,7 +61,7 @@ $Choice = Read-Host "Enter choice [1-3]"
 
 switch ($Choice) {
     "1" {
-        Write-Host "Compiling and running VoltGate locally..." -ForegroundColor Green
+        Write-Host "Compiling and running VivekaRouter locally..." -ForegroundColor Green
         $env:RUSTFLAGS = "-L $PWD\gcc_compat"
         
         # Start dashboard in the background once server launches
@@ -73,7 +73,7 @@ switch ($Choice) {
         cargo run
     }
     "2" {
-        Write-Host "Starting VoltGate with Docker Compose..." -ForegroundColor Green
+        Write-Host "Starting VivekaRouter with Docker Compose..." -ForegroundColor Green
         
         # Start dashboard in the background once server launches
         Start-ThreadJob {

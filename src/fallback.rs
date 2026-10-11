@@ -3,15 +3,17 @@
 /// opus-4-8 → sonnet-4-6 → haiku-4-5
 /// sonnet-4-6 → haiku-4-5
 
-use crate::models::{HAIKU, SONNET};
+use crate::models::{HAIKU, SONNET, GPT4O_MINI};
 
 pub fn next_fallback(current_model: &str) -> Option<&'static str> {
     match current_model {
-        m if m.contains("fable")  => Some(SONNET),
-        m if m.contains("opus")   => Some(SONNET),
-        m if m.contains("sonnet") => Some(HAIKU),
-        m if m.contains("haiku")  => None,
-        _                         => Some(SONNET),
+        m if m.contains("fable")       => Some(SONNET),
+        m if m.contains("opus")        => Some(SONNET),
+        m if m.contains("sonnet")      => Some(HAIKU),
+        m if m.contains("haiku")       => Some(GPT4O_MINI), // Cross-cloud fallback to OpenAI
+        m if m.contains("gpt-4o-mini") => None,
+        m if m.contains("gpt-4o")      => Some(GPT4O_MINI),
+        _                              => Some(SONNET),
     }
 }
 

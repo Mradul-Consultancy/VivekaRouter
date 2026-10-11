@@ -4,7 +4,7 @@ pub async fn docs_handler() -> impl IntoResponse {
     Html(r#"<!doctype html>
 <html lang="en">
   <head>
-    <title>VoltGate API Reference</title>
+    <title>VivekaRouter API Reference</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
@@ -27,14 +27,14 @@ pub async fn openapi_json_handler() -> impl IntoResponse {
     Json(serde_json::json!({
         "openapi": "3.0.3",
         "info": {
-            "title": "VoltGate API",
+            "title": "VivekaRouter API",
             "version": "0.1.0",
-            "description": "VoltGate — Open-source LLM router proxy for Anthropic models. Fully compatible with OpenAI's Chat Completions and Embeddings client SDKs."
+            "description": "VivekaRouter — Open-source intelligent LLM router proxy with semantic discernment. Fully compatible with OpenAI's Chat Completions and Embeddings client SDKs."
         },
         "servers": [
             {
                 "url": "http://localhost:3001",
-                "description": "Local VoltGate instance"
+                "description": "Local VivekaRouter instance"
             }
         ],
         "paths": {
@@ -148,7 +148,7 @@ pub async fn openapi_json_handler() -> impl IntoResponse {
                     "properties": {
                         "model": {
                             "type": "string",
-                            "description": "Optional model target. If omitted, VoltGate will classify and auto-route.",
+                            "description": "Optional model target. If omitted, VivekaRouter will classify and auto-route.",
                             "example": "claude-sonnet-4-6"
                         },
                         "messages": {
@@ -216,7 +216,7 @@ pub async fn openapi_json_handler() -> impl IntoResponse {
                         },
                         "x_router": {
                             "type": "object",
-                            "description": "Custom VoltGate metadata tracing the routing execution path",
+                            "description": "Custom VivekaRouter metadata tracing the routing execution path",
                             "properties": {
                                 "routed_to": { "type": "string" },
                                 "complexity": { "type": "string" },
@@ -237,7 +237,7 @@ pub async fn openapi_json_handler() -> impl IntoResponse {
                                 { "type": "string" },
                                 { "type": "array", "items": { "type": "string" } }
                             ],
-                            "example": "VoltGate LLM router embeddings input text"
+                            "example": "VivekaRouter LLM router embeddings input text"
                         },
                         "model": {
                             "type": "string",
