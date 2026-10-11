@@ -20,7 +20,10 @@ pub fn render(db: &Db) -> String {
     let recent     = recent_calls(db, 35);
 
     let is_empty = recent.is_empty() && today == 0.0;
+    tracing::info!("Dashboard render: is_empty={}, today={}, recent_count={}, daily_count={}",
+        is_empty, today, recent.len(), daily.len());
 
+    // Always show demo data when database is empty
     let display_today = if is_empty { 1.4820 } else { today };
     let display_cache_rate = if is_empty { 41.8 } else { cache_rate };
     let display_model_count = if is_empty { 4 } else { by_model.len() };
@@ -190,6 +193,7 @@ pub fn render(db: &Db) -> String {
     };
 
     format!(r##"<!DOCTYPE html>
+<!-- BUILD: v3-demo-fix -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
