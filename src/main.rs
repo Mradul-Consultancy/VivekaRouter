@@ -44,7 +44,10 @@ async fn main() {
         .with(tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "voltgate=info,tower_http=info".into()))
         .init();
 
-    let api_key      = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
+    let api_key      = std::env::var("ANTHROPIC_API_KEY").unwrap_or_else(|_| {
+        tracing::warn!("ANTHROPIC_API_KEY is not set — running in demo mode");
+        "demo-placeholder-key".into()
+    });
     let db_path       = std::env::var("DB_PATH").unwrap_or_else(|_| "router.db".into());
     let port          = std::env::var("PORT").unwrap_or_else(|_| "3001".into());
     let config_path   = std::env::var("CONFIG_PATH").unwrap_or_else(|_| "config.toml".into());

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: vivekarouter
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ROUTER_API_KEY
+        sync: false
+      - key: MAX_RPM
+        value: 60
+      - key: MAX_SPEND_PER_HOUR_USD
+        value: 10.0
+      - key: RUST_LOG
+        value: voltgate=info,tower_http=info

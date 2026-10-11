@@ -107,6 +107,27 @@ cargo build --release
 docker-compose up --build -d
 ```
 
+### 4. Deploy Free to Cloud (Render / Railway / Fly.io)
+
+Keep VivekaRouter online 24/7 on a public HTTPS domain:
+
+#### One-Click Deploy to Render:
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Mradul-Consultancy/VivekaRouter)
+
+#### Manual Render Deployment:
+1. Go to [Render Dashboard](https://dashboard.render.com/) → Click **New +** → **Web Service**.
+2. Connect your repository: `https://github.com/Mradul-Consultancy/VivekaRouter`.
+3. Configure settings:
+   - **Environment:** `Docker` (Render automatically detects `Dockerfile`)
+   - **Plan:** Free
+   - **Health Check Path:** `/health`
+4. Environment Variables:
+   - `PORT`: `3001`
+   - `ANTHROPIC_API_KEY`: `your_key_here` (or leave empty for demo mode)
+   - `ROUTER_API_KEY`: *(optional bearer key to protect your endpoints)*
+5. Click **Deploy Web Service**. Your live dashboard will be accessible at:
+   `https://<your-service-name>.onrender.com/dashboard`
+
 ---
 
 ## 🔌 Compatibility & Standards
