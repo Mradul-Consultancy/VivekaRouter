@@ -113,19 +113,21 @@ async fn main() {
         .route("/v1/chat/completions", post(chat_completions))
         .route("/v1/embeddings",       post(embeddings_handler))
         .route("/acp/run",             post(acp::handle_acp))
-        .route("/dashboard",           get(dashboard_handler))
-        .route("/api/stats",           get(api_stats))
-        .route("/api/stats/csv",       get(api_stats_csv))
-        .route("/api/config",          get(get_config).post(post_config))
-        .route("/api/rate-limits",     get(api_rate_limits))
-        .route("/api/calls",           get(api_calls))
+        .route("/api/config",          post(post_config))
         .layer(middleware::from_fn(auth::require_auth));
 
     let public = Router::new()
-        .route("/health",  get(health))
-        .route("/metrics", get(prometheus_metrics))
-        .route("/docs",    get(docs::docs_handler))
-        .route("/openapi.json", get(docs::openapi_json_handler));
+        .route("/",                    get(dashboard_handler))
+        .route("/dashboard",           get(dashboard_handler))
+        .route("/api/stats",           get(api_stats))
+        .route("/api/stats/csv",       get(api_stats_csv))
+        .route("/api/config",          get(get_config))
+        .route("/api/rate-limits",     get(api_rate_limits))
+        .route("/api/calls",           get(api_calls))
+        .route("/health",              get(health))
+        .route("/metrics",             get(prometheus_metrics))
+        .route("/docs",                get(docs::docs_handler))
+        .route("/openapi.json",        get(docs::openapi_json_handler));
 
     let app = Router::new()
         .merge(protected).merge(public)
