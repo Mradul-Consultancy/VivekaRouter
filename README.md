@@ -34,32 +34,32 @@ VivekaRouter is an open-source, high-performance, and intelligent proxy server d
 
 ```mermaid
 graph TD
-    App[Your Application] -->|HTTP Request| Auth[Bearer Auth Middleware]
-    Auth -->|Check RPM & Spend| Limiter{Rate Limiter}
-    Limiter -->|Passed| Classifier[Haiku Classifier & Cache]
-    Classifier -->|Select Model| Guardrails{Pre-Flight Guardrails}
-    Guardrails -->|Passed| Budgets{Model Daily Budgets}
-    Budgets -->|Budget OK| Context[Context Engineering Engine]
-    Budgets -->|Exceeded / Fallback| Reroute[Select Next Fallback Model]
+    App["Your Application"] -->|HTTP Request| Auth["Bearer Auth Middleware"]
+    Auth -->|Check RPM & Spend| Limiter{"Rate Limiter"}
+    Limiter -->|Passed| Classifier["Haiku Classifier & Cache"]
+    Classifier -->|Select Model| Guardrails{"Pre-Flight Guardrails"}
+    Guardrails -->|Passed| Budgets{"Model Daily Budgets"}
+    Budgets -->|Budget OK| Context["Context Engineering Engine"]
+    Budgets -->|Exceeded / Fallback| Reroute["Select Next Fallback Model"]
     Reroute --> Context
     
-    Context -->|1. Compress >8k| Pipeline[Request Pipeline]
-    Context -->|2. Trim to budget| Pipeline
-    Context -->|3. System Injection| Pipeline
-    Context -->|4. Prompt Caching| Pipeline
+    Context -->|"1. Compress >8k"| Pipeline["Request Pipeline"]
+    Context -->|"2. Trim to budget"| Pipeline
+    Context -->|"3. System Injection"| Pipeline
+    Context -->|"4. Prompt Caching"| Pipeline
     
-    Pipeline -->|Check stream=true| Dispatcher{Request Dispatcher}
-    Dispatcher -->|Stream| SSE[Streaming SSE Proxy]
-    Dispatcher -->|Non-Stream| Proxy[Retrying HTTP Proxy]
+    Pipeline -->|Check stream=true| Dispatcher{"Request Dispatcher"}
+    Dispatcher -->|Stream| SSE["Streaming SSE Proxy"]
+    Dispatcher -->|Non-Stream| Proxy["Retrying HTTP Proxy"]
     
-    Proxy -->|529 / 429 / 5xx| Retry[Exponential Backoff Retry]
-    Retry -->|Persistent Failures| Failover[Model Fallback Escalation]
+    Proxy -->|"529 / 429 / 5xx"| Retry["Exponential Backoff Retry"]
+    Retry -->|Persistent Failures| Failover["Model Fallback Escalation"]
     
-    SSE --> DB[(SQLite Logs)]
+    SSE --> DB[("SQLite Logs")]
     Proxy --> DB
     
-    DB --> Dash[HTML Admin Dashboard]
-    DB --> Prometheus[/metrics Endpoint]
+    DB --> Dash["HTML Admin Dashboard"]
+    DB --> Prometheus["Prometheus Metrics (/metrics)"]
 ```
 
 ### 🏛️ Module Architecture
@@ -225,7 +225,7 @@ claude-sonnet-4-6 = 100.0
 
 ## 🧪 Development & Testing
 
-VivekaRouter includes a comprehensive test suite of 108 unit and integration tests validating the routing logic, rate limiter, context engineering, and guardrails.
+VivekaRouter includes a comprehensive test suite of 109 unit and integration tests validating the routing logic, rate limiter, context engineering, and guardrails.
 
 ### Running Tests
 
