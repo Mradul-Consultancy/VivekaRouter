@@ -1,8 +1,12 @@
 # ⚡ VivekaRouter
 
+**VivekaRouter** – An open‑source, high‑performance AI router proxy written in Rust that intelligently routes Anthropic requests, applies cost‑optimising guardrails, and provides a real‑time dark‑themed dashboard.
+
+[![Website](https://img.shields.io/badge/website-live%20dashboard-00b7ff?style=flat&logo=render)](https://vivekarouter.onrender.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust Version](https://img.shields.io/badge/rustc-1.78%2B-blue.svg)](https://www.rust-lang.org/)
 [![Status](https://img.shields.io/badge/status-production--ready-green.svg)]()
+[![Topics: LLM Router Rust Proxy Cost‑Control](https://img.shields.io/badge/topics-LLM%20Router%20Rust%20Proxy%20Cost%20Control-blue.svg?style=flat)]()
 
 VivekaRouter is an open-source, high-performance, and intelligent proxy server designed to route Anthropic requests dynamically to the cheapest model that can reliably handle the task. By combining real-time classification, advanced context engineering, failover chains, and dynamic spend controls, it allows developers to slash API costs by up to **78%** without sacrificing system reliability.
 
